@@ -38,5 +38,5 @@ There is no linter or formatter configured.
 `.claude/settings.json` registers hooks (scripts in `.claude/hooks/`) that enforce the rules above:
 
 - `block-pr-merge.sh` blocks any `gh pr merge` command.
-- `protect-main.sh` blocks `git commit`/`git push` while on `main`, and pushes targeting `main`. It checks the branch *before* the command runs, so create a feature branch in a separate command, not chained with `&& git commit`.
+- `protect-main.sh` blocks `git commit`/`git push` while on `main`, and pushes targeting `main`. Deleting another remote branch (`git push origin --delete <branch>`) is allowed from `main`. It checks the branch *before* the command runs, so create a feature branch in a separate command, not chained with `&& git commit`.
 - `run-tests.sh` runs `./gradlew test` after any `.java` file is edited and reports failures back.

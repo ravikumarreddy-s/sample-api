@@ -32,3 +32,11 @@ There is no linter or formatter configured.
 
 - Remote: `github.com/ravikumarreddy-s/sample-api`. `gh` CLI is installed and logged in.
 - Work on a feature branch, push it and open a PR into `main`. **Never merge PRs**: the owner reviews and merges them.
+
+## Claude Code hooks
+
+`.claude/settings.json` registers hooks (scripts in `.claude/hooks/`) that enforce the rules above:
+
+- `block-pr-merge.sh` blocks any `gh pr merge` command.
+- `protect-main.sh` blocks `git commit`/`git push` while on `main`, and pushes targeting `main`. It checks the branch *before* the command runs, so create a feature branch in a separate command, not chained with `&& git commit`.
+- `run-tests.sh` runs `./gradlew test` after any `.java` file is edited and reports failures back.

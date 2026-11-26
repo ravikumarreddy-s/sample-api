@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-`sample-api` is a Spring Boot 4.2 REST API skeleton (Java 17, Gradle 9.9 wrapper, base package `com.abc.sample`). It has no domain code yet: just the application class, Actuator health and tests.
+`sample-api` is a Spring Boot 4.2 REST API skeleton (Java 17, Gradle 9.9 wrapper, base package `com.abc.sample`). Besides Actuator health, it has one feature: Luhn credit-card validation (`com.abc.sample.card`).
 
 ## Commands
 
@@ -13,11 +13,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./gradlew test                       # run all tests
 ./gradlew test --tests 'com.abc.sample.HealthEndpointTests'                    # one test class
 ./gradlew test --tests 'com.abc.sample.HealthEndpointTests.healthReturnsUp'    # one test method
+./gradlew check                      # tests + JaCoCo coverage gate (80% line and branch)
 ./gradlew bootRun                    # start the app on :8080
 curl -H 'Accept: application/json' localhost:8080/actuator/health
+curl -H "Content-Type: application/json" -d '{"cardNumber":"4111 1111 1111 1111"}' localhost:8080/api/cards/validate
 ```
 
-There is no linter or formatter configured.
+There is no linter or formatter configured. Coverage report: `build/reports/jacoco/test/html/index.html`.
 
 ## Architecture notes
 
@@ -26,6 +28,7 @@ There is no linter or formatter configured.
 - Actuator returns `application/vnd.spring-boot.actuator.v3+json` unless the request sends `Accept: application/json`; tests asserting a JSON content type must set that header.
 - Actuator endpoints aren't loaded by `@WebMvcTest` slices, so endpoint tests use `@SpringBootTest` + `@AutoConfigureMockMvc`.
 - Lombok is on the compile and test classpaths.
+- **Card validation:** `POST /api/cards/validate` with `{"cardNumber": "..."}` returns `{"valid": true|false}`. Spaces and hyphens are allowed as separators; 12 to 19 digits. Missing or blank `cardNumber` returns 400. The number goes in the body (not the URL) and is never echoed back or logged; keep it that way.
 - Config lives in `src/main/resources/application.yaml` (YAML, not `.properties`).
 
 ## Git workflow

@@ -1,0 +1,14 @@
+# Test-only settings. Activated with @ActiveProfiles("test"). Never reuse this key elsewhere.
+app:
+  security:
+    jwt:
+      secret: dGVzdC1vbmx5LWhtYWMta2V5LWZvci1zYW1wbGUtYXBpLWp3dC10ZXN0cyE=
+      issuer: sample-api-test
+      ttl: 15m
+    users:
+      tester:
+        password: "{noop}tester-password"
+        roles: [USER]
+      admin:
+        password: "{noop}admin-password"
+        roles: [USER, ADMIN]

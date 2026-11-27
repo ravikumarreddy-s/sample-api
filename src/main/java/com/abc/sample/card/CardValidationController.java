@@ -7,9 +7,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.abc.sample.config.OpenApiConfig;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
@@ -21,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/cards")
 @RequiredArgsConstructor
 @Tag(name = "Cards", description = "Credit card number validation")
+@SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
 public class CardValidationController {
 
 	private final LuhnValidator luhnValidator;
@@ -32,6 +36,7 @@ public class CardValidationController {
 	@ApiResponse(responseCode = "200", description = "Check completed; `valid` holds the result")
 	@ApiResponse(responseCode = "400", description = "`cardNumber` is missing or blank, or the body is not valid JSON",
 			content = @Content)
+	@ApiResponse(responseCode = "401", description = "Missing, invalid or expired bearer token", content = @Content)
 	@PostMapping("/validate")
 	public CardValidationResponse validate(
 			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Card number to validate",

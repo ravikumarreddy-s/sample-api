@@ -2,6 +2,14 @@ spring:
   application:
     name: sample-api
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+  # Include the web-exposed Actuator endpoints (only health) in the OpenAPI document.
+  show-actuator: true
+
 app:
   security:
     jwt:

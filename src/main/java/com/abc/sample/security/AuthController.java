@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -17,6 +21,7 @@ import lombok.RequiredArgsConstructor;
  */
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Authentication", description = "Obtain JWT access tokens")
 public class AuthController {
 
 	static final String TOKEN_PATH = "/api/auth/token";
@@ -25,8 +30,16 @@ public class AuthController {
 
 	private final TokenService tokenService;
 
+	@Operation(summary = "Get an access token",
+			description = "Exchanges a username and password for a signed JWT. No token is needed to call this.")
+	@ApiResponse(responseCode = "200", description = "Token issued")
+	@ApiResponse(responseCode = "400", description = "`username` or `password` is missing or blank",
+			content = @Content)
+	@ApiResponse(responseCode = "401", description = "Invalid credentials", content = @Content)
 	@PostMapping(TOKEN_PATH)
-	public TokenResponse token(@RequestBody TokenRequest request) {
+	public TokenResponse token(
+			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Account credentials",
+					required = true) @RequestBody TokenRequest request) {
 		if (isBlank(request.username()) || isBlank(request.password())) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "username and password are required");
 		}

@@ -35,8 +35,8 @@ import com.nimbusds.jose.jwk.source.ImmutableSecret;
 /**
  * Stateless JWT security. Clients exchange a username and password for a signed (HS256)
  * access token at {@code POST /api/auth/token}, then send it as
- * {@code Authorization: Bearer <token>}. Only health checks and the token endpoint are
- * open; everything else requires a valid token.
+ * {@code Authorization: Bearer <token>}. Only health checks, the token endpoint and the
+ * API docs (OpenAPI JSON and Swagger UI) are open; everything else requires a valid token.
  */
 @Configuration
 @EnableConfigurationProperties({ JwtProperties.class, UserAccountProperties.class })
@@ -49,6 +49,10 @@ public class SecurityConfig {
 		http.authorizeHttpRequests((auth) -> auth
 				.requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**").permitAll()
 				.requestMatchers(HttpMethod.POST, AuthController.TOKEN_PATH).permitAll()
+				// API docs and Swagger UI. Calls made from the UI still need a bearer token.
+				.requestMatchers(HttpMethod.GET, "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html",
+						"/swagger-ui/**")
+				.permitAll()
 				.requestMatchers("/error").permitAll()
 				.anyRequest().authenticated())
 			.oauth2ResourceServer((rs) -> rs.jwt(Customizer.withDefaults()))

@@ -9,3 +9,8 @@ app:
       demo:
         password: "{noop}demo-pass"
         roles: [USER]
+
+logging:
+  level:
+    # Method entry/exit logs from MethodLoggingAspect (class and method names only).
+    com.abc.sample.logging: DEBUG

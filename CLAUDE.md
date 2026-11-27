@@ -29,6 +29,7 @@ There is no linter or formatter configured. Coverage report: `build/reports/jaco
 - Actuator endpoints aren't loaded by `@WebMvcTest` slices, so endpoint tests use `@SpringBootTest` + `@AutoConfigureMockMvc`.
 - Lombok is on the compile and test classpaths.
 - **Card validation:** `POST /api/cards/validate` with `{"cardNumber": "..."}` returns `{"valid": true|false}`. Spaces and hyphens are allowed as separators; 12 to 19 digits. Missing or blank `cardNumber` returns 400. The number goes in the body (not the URL) and is never echoed back or logged; keep it that way.
+- **API docs (springdoc-openapi 3.x):** OpenAPI JSON at `GET /v3/api-docs`, Swagger UI at `/swagger-ui.html`. `springdoc.show-actuator: true` includes the health endpoint. API metadata is in `config/OpenApiConfig`; document new endpoints with `@Tag`/`@Operation`/`@ApiResponse` and `@Schema` on request/response records. `OpenApiDocsTests` checks the generated document.
 - Config lives in `src/main/resources/application.yaml` (YAML, not `.properties`).
 
 ## Git workflow

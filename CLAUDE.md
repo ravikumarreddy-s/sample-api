@@ -14,10 +14,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./gradlew test --tests 'com.abc.sample.HealthEndpointTests'                    # one test class
 ./gradlew test --tests 'com.abc.sample.HealthEndpointTests.healthReturnsUp'    # one test method
 ./gradlew check                      # tests + JaCoCo coverage gate (80% line and branch)
-# start the app on :8080 (JWT_SECRET is required; the user here is for local use only)
-JWT_SECRET=$(openssl rand -base64 32) \
-  SPRING_APPLICATION_JSON='{"app":{"security":{"users":{"demo":{"password":"{noop}demo-pass"}}}}}' \
-  ./gradlew bootRun
+# start the app on :8080 with the `local` profile (application-local.yaml: dev-only signing key + demo/demo-pass user)
+./gradlew bootRun --args='--spring.profiles.active=local'
 curl -H 'Accept: application/json' localhost:8080/actuator/health
 TOKEN=$(curl -s -H "Content-Type: application/json" -d '{"username":"demo","password":"demo-pass"}' localhost:8080/api/auth/token | jq -r .accessToken)
 curl -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"cardNumber":"4111 1111 1111 1111"}' localhost:8080/api/cards/validate
@@ -36,7 +34,7 @@ There is no linter or formatter configured. Coverage report: `build/reports/jaco
 - **Security (`com.abc.sample.security`):** stateless JWT via Spring Security's OAuth2 resource server, HS256 tokens signed with `app.security.jwt.secret` (base64, ≥ 256 bits, from `JWT_SECRET`; startup fails without it). `POST /api/auth/token` with `{"username","password"}` returns `{"accessToken","tokenType":"Bearer","expiresIn"}`; bad credentials → 401 (same for unknown user and wrong password), missing fields → 400. Accounts come from `app.security.users.<name>.{password,roles}` with id-prefixed encoded passwords (`{bcrypt}...`); none are configured by default. Tokens carry `iss`, `sub`, `iat`, `exp` and a `roles` claim mapped to `ROLE_*` authorities. Open without a token: `GET /actuator/health/**`, `POST /api/auth/token`, `/error`; everything else needs `Authorization: Bearer`. CSRF, sessions, form login and HTTP Basic are off. Never log passwords, secrets or tokens.
 - **Tests run with the `test` profile** (`src/test/resources/application-test.yaml`: test signing key plus `tester`/`admin` users). Every `@SpringBootTest`/`@WebMvcTest` class needs `@ActiveProfiles("test")`; `@WebMvcTest` slices must `@Import(SecurityConfig.class)` and use `SecurityMockMvcRequestPostProcessors.jwt()` for authenticated requests. Spring Security 7 adds a `FACTOR_BEARER` authority to JWT authentications, so don't assert an exact authority set.
 - **API docs (springdoc-openapi 3.x):** OpenAPI JSON at `GET /v3/api-docs`, Swagger UI at `/swagger-ui.html`; both are open (GET only) in `SecurityConfig`. `springdoc.show-actuator: true` includes the health endpoint. `config/OpenApiConfig` holds the API metadata and the `bearerAuth` (HTTP bearer, JWT) scheme. Document new endpoints with `@Tag`/`@Operation`/`@ApiResponse` and `@Schema` on request/response records, and put `@SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)` on protected controllers (not on open ones like the token endpoint). `OpenApiDocsTests` checks the generated document.
-- Config lives in `src/main/resources/application.yaml` (YAML, not `.properties`).
+- Config lives in `src/main/resources/application.yaml` (YAML, not `.properties`). `application-local.yaml` is a dev-only profile with a public signing key (`JWT_SECRET` still overrides it) and a `demo` user; never activate it outside local development.
 
 ## Git workflow
 

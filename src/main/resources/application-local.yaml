@@ -1,0 +1,11 @@
+# Local development only. Activate with: ./gradlew bootRun --args='--spring.profiles.active=local'
+# Never activate this profile in a shared or deployed environment: the key and password below are public.
+app:
+  security:
+    jwt:
+      # Local-only key (decodes to "local-only-hmac-key-for-sample-api-dev!!"). JWT_SECRET still overrides it.
+      secret: ${JWT_SECRET:bG9jYWwtb25seS1obWFjLWtleS1mb3Itc2FtcGxlLWFwaS1kZXYhIQ==}
+    users:
+      demo:
+        password: "{noop}demo-pass"
+        roles: [USER]

@@ -48,3 +48,38 @@ There is no linter or formatter configured. Coverage report: `build/reports/jaco
 - `block-pr-merge.sh` blocks any `gh pr merge` command.
 - `protect-main.sh` blocks `git commit`/`git push` while on `main`, and pushes targeting `main`. Deleting another remote branch (`git push origin --delete <branch>`) is allowed from `main`. It checks the branch *before* the command runs, so create a feature branch in a separate command, not chained with `&& git commit`.
 - `run-tests.sh` runs `./gradlew test` after any `.java` file is edited and reports failures back.
+
+## Java coding standards
+
+- Use meaningful class, method and variable names.
+- Keep methods small and focused.
+- Avoid duplicate code.
+- Avoid hardcoded configuration values.
+- Prefer immutable objects where practical.
+- Use Java records for suitable DTOs.
+- Use `Optional` appropriately.
+- Avoid unnecessary null checks and nested conditions.
+- Use SLF4J for logging.
+- Do not use `System.out.println` for application logging.
+
+## REST API standards
+
+- Follow RESTful resource naming conventions.
+- Use appropriate HTTP methods and status codes.
+- Validate incoming requests using Bean Validation.
+- Use centralized exception handling with `@RestControllerAdvice`.
+- Return consistent error responses.
+- Document endpoints using OpenAPI.
+- Maintain backward compatibility unless approved.
+
+## Pull request guidelines
+
+Every pull request should include:
+
+- Summary of changes
+- Reason for the change
+- Files or components impacted
+- Testing performed and results
+- Security considerations
+- Breaking changes, if any
+- Known limitations

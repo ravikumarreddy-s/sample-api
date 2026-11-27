@@ -1,3 +1,17 @@
 spring:
   application:
     name: sample-api
+
+app:
+  security:
+    jwt:
+      # Base64-encoded HMAC key, at least 256 bits. Required: the app won't start without it.
+      # Generate one with: openssl rand -base64 32
+      secret: ${JWT_SECRET:}
+      issuer: sample-api
+      ttl: 15m
+    # Accounts allowed to request tokens. None by default; add them per environment, e.g.
+    #   users:
+    #     alice:
+    #       password: "{bcrypt}$2a$10$..."
+    #       roles: [USER]

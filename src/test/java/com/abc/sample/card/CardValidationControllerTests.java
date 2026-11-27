@@ -2,6 +2,7 @@ package com.abc.sample.card;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -15,11 +16,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import com.abc.sample.security.SecurityConfig;
+
 @WebMvcTest(CardValidationController.class)
-@Import(LuhnValidator.class)
+@Import({ LuhnValidator.class, SecurityConfig.class })
+@ActiveProfiles("test")
 class CardValidationControllerTests {
 
 	private static final String URL = "/api/cards/validate";
@@ -28,7 +33,13 @@ class CardValidationControllerTests {
 	private MockMvc mockMvc;
 
 	private ResultActions postJson(String body) throws Exception {
-		return mockMvc.perform(post(URL).contentType(MediaType.APPLICATION_JSON).content(body));
+		return mockMvc.perform(post(URL).with(jwt()).contentType(MediaType.APPLICATION_JSON).content(body));
+	}
+
+	@Test
+	void requestWithoutTokenIsUnauthorized() throws Exception {
+		mockMvc.perform(post(URL).contentType(MediaType.APPLICATION_JSON).content("{\"cardNumber\":\"4111111111111111\"}"))
+			.andExpect(status().isUnauthorized());
 	}
 
 	@Test
@@ -72,7 +83,7 @@ class CardValidationControllerTests {
 
 	@Test
 	void getIsNotAllowed() throws Exception {
-		mockMvc.perform(get(URL)).andExpect(status().isMethodNotAllowed());
+		mockMvc.perform(get(URL).with(jwt())).andExpect(status().isMethodNotAllowed());
 	}
 
 }

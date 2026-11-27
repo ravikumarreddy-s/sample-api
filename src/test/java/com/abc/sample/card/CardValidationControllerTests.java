@@ -73,17 +73,38 @@ class CardValidationControllerTests {
 	@ParameterizedTest
 	@ValueSource(strings = { "{}", "{\"cardNumber\":null}", "{\"cardNumber\":\"\"}", "{\"cardNumber\":\"   \"}" })
 	void missingOrBlankNumberReturnsBadRequest(String body) throws Exception {
-		postJson(body).andExpect(status().isBadRequest());
+		postJson(body).andExpect(status().isBadRequest())
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+			.andExpect(jsonPath("$.status").value(400))
+			.andExpect(jsonPath("$.detail").value("Request validation failed"))
+			.andExpect(jsonPath("$.instance").value(URL))
+			.andExpect(jsonPath("$.errors[0].field").value("cardNumber"))
+			.andExpect(jsonPath("$.errors[0].message").isNotEmpty())
+			.andExpect(jsonPath("$.errors[0].rejectedValue").doesNotExist());
 	}
 
 	@Test
 	void malformedJsonReturnsBadRequest() throws Exception {
-		postJson("{\"cardNumber\":").andExpect(status().isBadRequest());
+		postJson("{\"cardNumber\":\"4111111111111111\"").andExpect(status().isBadRequest())
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+			.andExpect(jsonPath("$.status").value(400))
+			.andExpect(jsonPath("$.title").value("Bad Request"))
+			.andExpect(content().string(not(containsString("4111111111111111"))));
 	}
 
 	@Test
 	void getIsNotAllowed() throws Exception {
-		mockMvc.perform(get(URL).with(jwt())).andExpect(status().isMethodNotAllowed());
+		mockMvc.perform(get(URL).with(jwt())).andExpect(status().isMethodNotAllowed())
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+			.andExpect(jsonPath("$.status").value(405));
+	}
+
+	@Test
+	void unsupportedMediaTypeReturnsProblem() throws Exception {
+		mockMvc.perform(post(URL).with(jwt()).contentType(MediaType.TEXT_PLAIN).content("4111111111111111"))
+			.andExpect(status().isUnsupportedMediaType())
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+			.andExpect(jsonPath("$.status").value(415));
 	}
 
 }

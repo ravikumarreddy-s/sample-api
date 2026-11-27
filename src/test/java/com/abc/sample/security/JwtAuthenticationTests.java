@@ -1,5 +1,6 @@
 package com.abc.sample.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -103,20 +104,46 @@ class JwtAuthenticationTests {
 	@Test
 	void wrongPasswordIsUnauthorized() throws Exception {
 		requestToken("{\"username\":\"tester\",\"password\":\"wrong\"}").andExpect(status().isUnauthorized())
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+			.andExpect(jsonPath("$.status").value(401))
+			.andExpect(jsonPath("$.detail").value("Invalid credentials"))
 			.andExpect(content().string(not(containsString("accessToken"))));
 	}
 
 	@Test
 	void unknownUserIsUnauthorized() throws Exception {
 		requestToken("{\"username\":\"nobody\",\"password\":\"tester-password\"}")
-			.andExpect(status().isUnauthorized());
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.detail").value("Invalid credentials"));
+	}
+
+	@Test
+	void unknownUserAndWrongPasswordGiveIdenticalBodies() throws Exception {
+		String wrongPassword = requestToken("{\"username\":\"tester\",\"password\":\"wrong\"}").andReturn()
+			.getResponse()
+			.getContentAsString();
+		String unknownUser = requestToken("{\"username\":\"nobody\",\"password\":\"wrong\"}").andReturn()
+			.getResponse()
+			.getContentAsString();
+		assertThat(unknownUser).isEqualTo(wrongPassword);
+	}
+
+	@Test
+	void failedLoginDoesNotEchoPassword() throws Exception {
+		requestToken("{\"username\":\"tester\",\"password\":\"s3cret-attempt\"}")
+			.andExpect(status().isUnauthorized())
+			.andExpect(content().string(not(containsString("s3cret-attempt"))));
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = { "{}", "{\"username\":\"tester\"}", "{\"password\":\"tester-password\"}",
 			"{\"username\":\" \",\"password\":\"tester-password\"}", "{\"username\":\"tester\",\"password\":\"\"}" })
 	void missingCredentialsAreBadRequest(String body) throws Exception {
-		requestToken(body).andExpect(status().isBadRequest());
+		requestToken(body).andExpect(status().isBadRequest())
+			.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+			.andExpect(jsonPath("$.detail").value("Request validation failed"))
+			.andExpect(jsonPath("$.errors").isNotEmpty())
+			.andExpect(content().string(not(containsString("tester-password"))));
 	}
 
 	@Test

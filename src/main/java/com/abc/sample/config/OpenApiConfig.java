@@ -21,6 +21,9 @@ public class OpenApiConfig {
 
 	public static final String BEARER_AUTH = "bearerAuth";
 
+	/** Media type of error responses (RFC 9457 problem details). */
+	public static final String PROBLEM_JSON = "application/problem+json";
+
 	@Bean
 	public OpenAPI sampleApiOpenApi() {
 		return new OpenAPI()
